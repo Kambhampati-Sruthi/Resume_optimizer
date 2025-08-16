@@ -1,3 +1,4 @@
+%%writefile resume_optimizer_app.py
 import streamlit as st
 import pdfplumber
 import re
@@ -25,6 +26,14 @@ def find_missing_keywords(resume_text, job_keywords):
     missing = [kw for kw in job_keywords if kw not in resume_words]
     return missing
 
+def generate_explanation(missing_keywords):
+    if not missing_keywords:
+        return "✅ Your resume already includes all the important keywords!"
+    return (
+        f"✅ Your resume is missing {len(missing_keywords)} keyword{'s' if len(missing_keywords) > 1 else ''}:\n"
+        + ", ".join(missing_keywords)
+    )
+
 def append_keywords_to_pdf(uploaded_file, keywords):
     reader = PdfReader(uploaded_file)
     writer = PdfWriter()
@@ -32,14 +41,17 @@ def append_keywords_to_pdf(uploaded_file, keywords):
     for page in reader.pages:
         writer.add_page(page)
 
-    # Create a PDF page with the missing keywords using reportlab
+    # Create a new PDF page with only the heading and keywords
     keyword_pdf = BytesIO()
     c = canvas.Canvas(keyword_pdf, pagesize=A4)
     text_object = c.beginText(40, 800)
     text_object.setFont("Helvetica", 12)
-    text_object.textLine("🔍 Missing Keywords Added for Optimization:")
+
+    # Heading
+    text_object.textLine("💡 Optimized Skills")
     text_object.textLine("")
 
+    # Only keyword list
     for kw in keywords:
         text_object.textLine(f"- {kw}")
 
@@ -48,7 +60,6 @@ def append_keywords_to_pdf(uploaded_file, keywords):
     c.save()
     keyword_pdf.seek(0)
 
-    # Merge the keyword page
     keyword_reader = PdfReader(keyword_pdf)
     writer.add_page(keyword_reader.pages[0])
 
@@ -57,17 +68,9 @@ def append_keywords_to_pdf(uploaded_file, keywords):
     output.seek(0)
     return output
 
-def generate_explanation(missing_keywords):
-    if not missing_keywords:
-        return "✅ Your resume already includes all the important keywords!"
-    return (
-        f"⚠️ Your resume is missing **{len(missing_keywords)}** keywords:\n\n"
-        + ", ".join(missing_keywords)
-    )
-
 # Streamlit UI
 st.set_page_config(page_title="Resume Keyword Optimizer and Generator", page_icon="📄")
-st.title("📄 Resume Keyword Optimizer and Generation")
+st.title("📄 Resume Keyword Optimizer and Generator")
 
 st.markdown("Optimize your resume by matching it with the job description keywords.")
 
@@ -80,12 +83,14 @@ if st.button("🚀 Optimize Resume"):
         job_keywords = extract_keywords(job_description)
         missing_keywords = find_missing_keywords(resume_text, job_keywords)
 
+        # ✅ Show explanation in Streamlit only
         explanation = generate_explanation(missing_keywords)
         st.markdown(f"### 🔍 Keyword Analysis Result\n\n{explanation}")
 
         with st.expander("📄 View Extracted Resume Text"):
             st.write(resume_text)
 
+        # ✅ PDF only gets keywords, no explanation
         optimized_pdf = append_keywords_to_pdf(resume_file, missing_keywords)
 
         st.download_button(
@@ -95,5 +100,3 @@ if st.button("🚀 Optimize Resume"):
         )
     else:
         st.warning("⚠️ Please provide both the job description and resume.")
-
-

@@ -67,7 +67,7 @@ def generate_explanation(missing_keywords):
 
 # Streamlit UI
 st.set_page_config(page_title="Resume Keyword Optimizer and Generator", page_icon="📄")
-st.title("📄 Resume Keyword Optimizer")
+st.title("📄 Resume Keyword Optimizer and Generation")
 
 st.markdown("Optimize your resume by matching it with the job description keywords.")
 
@@ -95,4 +95,5 @@ if st.button("🚀 Optimize Resume"):
         )
     else:
         st.warning("⚠️ Please provide both the job description and resume.")
+
 

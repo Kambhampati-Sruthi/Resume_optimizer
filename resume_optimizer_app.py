@@ -1,4 +1,3 @@
-%%writefile resume_optimizer_app.py
 import streamlit as st
 import pdfplumber
 import re
@@ -100,3 +99,4 @@ if st.button("🚀 Optimize Resume"):
         )
     else:
         st.warning("⚠️ Please provide both the job description and resume.")
+
